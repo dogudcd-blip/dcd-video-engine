@@ -1,5 +1,5 @@
 
-name: Video DCD dengan Foto Antikythera
+name: Video DCD Antikythera
 
 on:
   workflow_dispatch:
@@ -17,18 +17,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-dejavu-core
 
-      - name: Periksa foto
+      - name: Periksa gambar
         run: |
-          ls -lh antikythera.jpg
-          ffmpeg -version
+          echo "Memeriksa gambar Antikythera..."
+          ls -lh
+          test -f Antykithera.jpg
 
       - name: Buat video DCD
         run: |
           ffmpeg -y \
-          -loop 1 -framerate 30 -i antikythera.jpg \
-          -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0005,1.08)':d=360:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=52:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=18" \
-          -t 12 -c:v libx264 -pix_fmt yuv420p \
-          -movflags +faststart dcd-antikythera.mp4
+          -loop 1 -framerate 30 -i Antykithera.jpg \
+          -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0005,1.08)':d=360:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=52:x=(w-text_w)/2:y=h*0.75:box=1:boxcolor=black@0.55:boxborderw=18,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='DUNIA DI BALIK RAHASIA':fontcolor=white:fontsize=32:x=(w-text_w)/2:y=h*0.82" \
+          -t 12 \
+          -c:v libx264 -pix_fmt yuv420p \
+          -movflags +faststart \
+          dcd-antikythera.mp4
 
       - name: Simpan video
         uses: actions/upload-artifact@v4
