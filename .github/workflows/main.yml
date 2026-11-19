@@ -8,8 +8,14 @@ jobs:
   tes-ffmpeg:
     runs-on: ubuntu-latest
     steps:
+      - name: Instal FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Periksa FFmpeg
         run: |
           ffmpeg -version
           echo "Mesin DCD siap menjalankan FFmpeg"
           
+
