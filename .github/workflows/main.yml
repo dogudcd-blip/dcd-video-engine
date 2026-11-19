@@ -1,5 +1,5 @@
 
-name: Video Adegan DCD
+name: Video DCD dengan Foto Antikythera
 
 on:
   workflow_dispatch:
@@ -7,30 +7,33 @@ on:
 jobs:
   buat-video:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Ambil file repositori
+        uses: actions/checkout@v4
+
       - name: Instal FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-dejavu-core
 
-      - name: Buat tiga adegan DCD
+      - name: Periksa foto
+        run: |
+          ls -lh antikythera.jpg
+          ffmpeg -version
+
+      - name: Buat video DCD
         run: |
           ffmpeg -y \
-          -f lavfi -i "color=c=0x101827:s=1080x1920:r=30:d=4" \
-          -f lavfi -i "color=c=0x263448:s=1080x1920:r=30:d=4" \
-          -f lavfi -i "color=c=0x18251f:s=1080x1920:r=30:d=4" \
-          -filter_complex \
-          "[0:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='RAHASIA DARI MASA LALU':fontcolor=white:fontsize=58:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=out:st=3.5:d=0.5[v0]; \
-          [1:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MESIN DARI 2.000 TAHUN LALU':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=in:st=0:d=0.5,fade=t=out:st=3.5:d=0.5[v1]; \
-          [2:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=55:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=in:st=0:d=0.5[v2]; \
-          [v0][v1][v2]concat=n=3:v=1:a=0[out]" \
-          -map "[out]" -c:v libx264 -pix_fmt yuv420p \
-          -movflags +faststart dcd-adegan.mp4
+          -loop 1 -framerate 30 -i antikythera.jpg \
+          -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0005,1.08)':d=360:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=52:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=18" \
+          -t 12 -c:v libx264 -pix_fmt yuv420p \
+          -movflags +faststart dcd-antikythera.mp4
 
       - name: Simpan video
         uses: actions/upload-artifact@v4
         with:
-          name: Video-Adegan-DCD
-          path: dcd-adegan.mp4
+          name: Video-DCD-Antikythera
+          path: dcd-antikythera.mp4
           retention-days: 7
           
