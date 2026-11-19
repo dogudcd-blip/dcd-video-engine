@@ -1,8 +1,9 @@
-FROM linuxserver/ffmpeg:latest
 
-USER root
+FROM python:3.12-slim
 
-RUN apk add --no-cache python3 py3-pip
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -10,4 +11,4 @@ COPY server.py /app/server.py
 
 EXPOSE 10000
 
-CMD ["python3", "/app/server.py"]
+CMD ["python", "/app/server.py"]
