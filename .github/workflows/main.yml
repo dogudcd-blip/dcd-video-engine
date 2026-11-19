@@ -1,5 +1,5 @@
 
-name: Tes Video Pertama DCD
+name: Video Adegan DCD
 
 on:
   workflow_dispatch:
@@ -7,28 +7,30 @@ on:
 jobs:
   buat-video:
     runs-on: ubuntu-latest
-
     steps:
       - name: Instal FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-dejavu-core
 
-      - name: Buat video DCD
+      - name: Buat tiga adegan DCD
         run: |
           ffmpeg -y \
-          -f lavfi \
-          -i "color=c=0x101827:s=1080x1920:r=30:d=5" \
-          -vf "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='DCD - UJI VIDEO PERTAMA':fontcolor=white:fontsize=58:x=(w-text_w)/2:y=(h-text_h)/2" \
-          -c:v libx264 \
-          -pix_fmt yuv420p \
-          -movflags +faststart \
-          dcd-uji.mp4
+          -f lavfi -i "color=c=0x101827:s=1080x1920:r=30:d=4" \
+          -f lavfi -i "color=c=0x263448:s=1080x1920:r=30:d=4" \
+          -f lavfi -i "color=c=0x18251f:s=1080x1920:r=30:d=4" \
+          -filter_complex \
+          "[0:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='RAHASIA DARI MASA LALU':fontcolor=white:fontsize=58:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=out:st=3.5:d=0.5[v0]; \
+          [1:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MESIN DARI 2.000 TAHUN LALU':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=in:st=0:d=0.5,fade=t=out:st=3.5:d=0.5[v1]; \
+          [2:v]drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=55:x=(w-text_w)/2:y=(h-text_h)/2,fade=t=in:st=0:d=0.5[v2]; \
+          [v0][v1][v2]concat=n=3:v=1:a=0[out]" \
+          -map "[out]" -c:v libx264 -pix_fmt yuv420p \
+          -movflags +faststart dcd-adegan.mp4
 
-      - name: Simpan hasil video
+      - name: Simpan video
         uses: actions/upload-artifact@v4
         with:
-          name: Video-Percobaan-DCD
-          path: dcd-uji.mp4
+          name: Video-Adegan-DCD
+          path: dcd-adegan.mp4
           retention-days: 7
           
