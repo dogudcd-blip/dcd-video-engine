@@ -23,20 +23,21 @@ jobs:
           test -f adegan2.jpg
           test -f cordins.jpg
 
-      - name: Buat video sederhana
+      - name: Buat video DCD
         run: |
           ffmpeg -y \
-          -loop 1 -framerate 15 -i adegan1.jpg \
-          -loop 1 -framerate 15 -i adegan2.jpg \
-          -loop 1 -framerate 15 -i cordins.jpg \
+          -loop 1 -framerate 15 -t 4 -i adegan1.jpg \
+          -loop 1 -framerate 15 -t 4 -i adegan2.jpg \
+          -loop 1 -framerate 15 -t 4 -i cordins.jpg \
           -filter_complex "\
-          [0:v]scale=540:960,setsar=1,fps=15,trim=duration=4,setpts=PTS-STARTPTS,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='PENEMUAN DI DASAR LAUT':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v0]; \
-          [1:v]scale=540:960,setsar=1,fps=15,trim=duration=4,setpts=PTS-STARTPTS,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='RODA GIGI MISTERIUS':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v1]; \
-          [2:v]scale=540:960,setsar=1,fps=15,trim=duration=4,setpts=PTS-STARTPTS,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v2]; \
+          [0:v]scale=540:960:force_original_aspect_ratio=increase,crop=540:960,setsar=1,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='PENEMUAN DI DASAR LAUT':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v0]; \
+          [1:v]scale=540:960:force_original_aspect_ratio=increase,crop=540:960,setsar=1,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='RODA GIGI MISTERIUS':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v1]; \
+          [2:v]scale=540:960:force_original_aspect_ratio=increase,crop=540:960,setsar=1,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v2]; \
           [v0][v1][v2]concat=n=3:v=1:a=0[out]" \
-          -map "[out]" -c:v libx264 -preset ultrafast -crf 28 \
+          -map "[out]" -r 15 \
+          -c:v libx264 -preset ultrafast -crf 28 \
           -pix_fmt yuv420p -movflags +faststart \
-          dcd-tiga-adegan.mp4
+          -t 12 dcd-tiga-adegan.mp4
 
       - name: Simpan video
         uses: actions/upload-artifact@v4
