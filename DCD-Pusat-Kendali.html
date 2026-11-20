@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>DCD — Pusat Kendali</title>
+<style>
+:root{--bg:#0b1220;--panel:#111c2e;--panel2:#16243a;--line:#2b3c55;--text:#eef4ff;--muted:#9aabc3;--cyan:#54d6e8;--green:#47d18c;--amber:#f3bd5b;--red:#f17b83}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#172b46 0,#0b1220 45%);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:22px clamp(16px,4vw,40px) 16px;border-bottom:1px solid #26364d;background:#0b1220cc;position:sticky;top:0;z-index:5;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#37c5d8,#5367d8);display:grid;place-items:center;font-weight:900;color:#071321}
+h1{font-size:19px;margin:0;letter-spacing:.08em}header p{margin:3px 0 0;color:var(--muted);font-size:12px}
+main{max-width:1200px;margin:auto;padding:20px clamp(12px,3vw,28px) 48px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.stat,.panel{background:#111c2e;border:1px solid #26364d;border-radius:16px;padding:14px}.stat small{color:var(--muted)}.stat strong{display:block;font-size:25px;margin-top:3px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tab,.action{border:1px solid #334762;background:#142238;color:var(--text);padding:9px 13px;border-radius:10px;font-weight:650;cursor:pointer}.tab.active{background:#1a5266;border-color:#54d6e8}.action.primary{background:#16748a;border-color:#36bfd0}.action:active,.tab:active{transform:scale(.98)}
+.section-title{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:18px 2px 10px}.section-title h2{font-size:16px;margin:0}.hint{font-size:12px;color:var(--muted)}
+.canvas{background:linear-gradient(180deg,#101b2d,#0e1828);border:1px solid #26364d;border-radius:18px;padding:16px;overflow:hidden}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(180px,1fr));gap:22px 18px;position:relative}
+.node{position:relative;background:#15243a;border:1px solid #334762;border-radius:14px;padding:13px;min-height:110px;cursor:pointer;transition:.15s}
+.node:hover{border-color:#54d6e8;transform:translateY(-2px)}.node.selected{outline:2px solid var(--cyan)}
+.node .top{display:flex;justify-content:space-between;align-items:center;gap:8px}.ico{font-size:20px}.node h3{font-size:14px;margin:8px 0 3px}.node p{font-size:11px;color:var(--muted);margin:0}
+.pill{font-size:10px;border-radius:99px;padding:3px 7px;white-space:nowrap;border:1px solid #53647a;color:var(--muted)}
+.pill.connected{color:var(--green);border-color:#287e60;background:#14372f}.pill.pending{color:var(--amber);border-color:#8b6b31;background:#382d18}.pill.planned{color:#aebbd0;border-color:#53647a;background:#1b293c}
+.connector{height:20px;display:flex;align-items:center;justify-content:center;color:#5b789b;font-size:18px;grid-column:1/-1;margin:-13px 0}
+.detail{margin-top:14px;display:grid;grid-template-columns:1.3fr 1fr;gap:12px}.detail h3{margin:0 0 6px;font-size:15px}.detail p{margin:0;color:var(--muted);font-size:13px}.detail .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.list{display:grid;gap:8px}.rowitem{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 12px;background:#142238;border:1px solid #2b3c55;border-radius:12px}.rowitem strong{font-size:13px}.rowitem small{display:block;color:var(--muted);font-size:11px}
+.notice{margin-top:14px;padding:12px 14px;border:1px solid #80652e;background:#2a2418;border-radius:12px;color:#f1d69b;font-size:12px}
+footer{color:#8395af;text-align:center;font-size:11px;padding:22px}
+.hidden{display:none!important}
+@media(max-width:760px){.flow{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summary{gap:7px}.stat{padding:10px}.stat strong{font-size:21px}.detail{grid-template-columns:1fr}.canvas{padding:10px}}
+@media(max-width:390px){.flow{grid-template-columns:1fr}.summary{grid-template-columns:repeat(3,1fr)}.node{min-height:90px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">DCD</div><div><h1>DUNIA DI BALIK RAHASIA</h1><p>Mengungkap Misteri, Menemukan Fakta. · Pusat Kendali</p></div></div></header>
+<main>
+<div class="summary">
+ <div class="stat"><small>Sudah ditandai tersambung</small><strong id="countConnected">0</strong></div>
+ <div class="stat"><small>Belum tersambung</small><strong id="countPending">0</strong></div>
+ <div class="stat"><small>Total komponen</small><strong id="countAll">12</strong></div>
+</div>
+<div class="toolbar">
+ <button class="tab active" data-view="flow">Alur kerja</button>
+ <button class="tab" data-view="list">Daftar sambungan</button>
+ <button class="tab" data-view="guide">Petunjuk</button>
+ <button class="action" id="reset">Atur ulang status</button>
+</div>
+<section id="flowView">
+ <div class="section-title"><h2>Alur produksi DCD</h2><span class="hint">Ketuk kotak untuk melihat detail</span></div>
+ <div class="canvas"><div class="flow" id="flow"></div></div>
+ <div class="detail">
+  <div class="panel"><h3 id="detailTitle">Pilih salah satu komponen</h3><p id="detailDesc">Ketuk kotak pada alur untuk melihat fungsi dan sambungan berikutnya.</p><div class="actions"><button class="action primary" id="toggleStatus" disabled>Ubah status</button><button class="action" id="openGuide" disabled>Lihat cara sambungkan</button></div></div>
+  <div class="panel"><h3>Arti status</h3><p><span style="color:var(--green)">● Tersambung</span> — kamu menandainya sudah tersambung.<br><span style="color:var(--amber)">● Perlu disambungkan</span> — belum dikonfigurasi atau diuji.<br><span style="color:#aebbd0">● Tahap berikutnya</span> — belum menjadi bagian dari mesin aktif.</p></div>
+ </div>
+</section>
+<section id="listView" class="hidden">
+ <div class="section-title"><h2>Daftar semua komponen</h2><span class="hint">Status dapat diubah satu per satu</span></div><div class="panel list" id="list"></div>
+</section>
+<section id="guideView" class="hidden">
+ <div class="section-title"><h2>Petunjuk penggunaan</h2></div>
+ <div class="panel">
+  <h3>Bagaimana membaca alur ini?</h3>
+  <p>Alur menunjukkan gambaran hubungan antarbagian: Telegram menerima topik, n8n mengatur proses, riset dan AI menyiapkan naskah, mesin video merangkai hasil, lalu video dikirim atau diterbitkan.</p><br>
+  <h3>Bagaimana menandai sambungan?</h3>
+  <p>Pilih kotak komponen → tekan “Ubah status”. Gunakan status “Tersambung” hanya setelah sambungan benar-benar kamu buat dan uji. Status di halaman ini adalah catatan manual yang tersimpan di browser perangkat ini, bukan pemeriksaan langsung ke akun layanan.</p><br>
+  <h3>Yang belum dilakukan aplikasi ini</h3>
+  <p>Dashboard ini belum memiliki akses API/OAuth ke layanan eksternal, belum menjalankan produksi video, dan belum mengunggah konten. Tombol status hanya membantu mencatat kemajuan. Token dan kata sandi jangan dimasukkan ke halaman ini atau repositori publik.</p>
+ </div>
+</section>
+<div class="notice">Catatan biaya: dashboard ini berjalan sebagai file web statis dan tidak membutuhkan langganan atau billing. Layanan AI, penyimpanan, dan publikasi otomatis dapat memiliki biaya/kuota tersendiri; jangan aktifkan pembayaran sebelum biaya dan batasnya jelas.</div>
+</main>
+<footer>DCD Control Center · Prototipe web lokal · Status integrasi dicatat manual di perangkat ini</footer>
+<script>
+const items=[
+{id:'telegram',name:'Telegram Bot',icon:'✈️',desc:'Pintu masuk: kamu mengirim topik atau perintah DCD lewat Telegram.',status:'connected',group:'Masuk'},
+{id:'n8n',name:'n8n Cloud',icon:'⚙️',desc:'Pengatur alur: menerima pesan, memanggil layanan, dan meneruskan hasil.',status:'connected',group:'Orkestrasi'},
+{id:'tavily',name:'Tavily Research',icon:'🔎',desc:'Mencari sumber dan bahan riset untuk topik video.',status:'pending',group:'Riset'},
+{id:'gemini',name:'Gemini',icon:'✦',desc:'Membantu menyusun naskah, ringkasan, dan materi kreatif. Kuota gratis dapat terbatas.',status:'pending',group:'AI'},
+{id:'visual',name:'Bahan visual',icon:'🖼️',desc:'Gambar atau klip untuk setiap adegan. Perlu sumber yang sah dan sesuai.',status:'pending',group:'Produksi'},
+{id:'voice',name:'Narasi & suara',icon:'🎙️',desc:'Mengubah naskah menjadi narasi suara. Belum ada layanan TTS yang terpasang di alur ini.',status:'planned',group:'Produksi'},
+{id:'subtitles',name:'Subtitle',icon:'💬',desc:'Membuat dan menempelkan teks subtitle ke video.',status:'planned',group:'Produksi'},
+{id:'ffmpeg',name:'FFmpeg / GitHub Actions',icon:'🎬',desc:'Merangkai gambar dan teks menjadi MP4. Uji video gambar sederhana pernah berhasil.',status:'connected',group:'Mesin video'},
+{id:'review',name:'Pemeriksaan akhir',icon:'🛡️',desc:'Memeriksa fakta, hak penggunaan aset, suara, dan kualitas video sebelum tayang.',status:'planned',group:'Pemeriksaan'},
+{id:'telegramout',name:'Kirim hasil ke Telegram',icon:'📨',desc:'Mengirim file MP4 final kembali ke chat Telegram.',status:'planned',group:'Keluaran'},
+{id:'tiktok',name:'TikTok',icon:'♪',desc:'Publikasi video ke akun TikTok. Memerlukan integrasi dan izin resmi.',status:'planned',group:'Publikasi'},
+{id:'youtube',name:'YouTube Shorts',icon:'▶️',desc:'Publikasi video vertikal ke YouTube.',status:'planned',group:'Publikasi'},
+{id:'instagram',name:'Instagram Reels',icon:'◎',desc:'Publikasi ke Instagram. Memerlukan akun dan izin API yang sesuai.',status:'planned',group:'Publikasi'},
+{id:'facebook',name:'Facebook Reels',icon:'f',desc:'Publikasi ke Facebook Page melalui jalur resmi yang didukung.',status:'planned',group:'Publikasi'}
+];
+const labels={connected:'Tersambung*',pending:'Perlu disambungkan',planned:'Tahap berikutnya'};
+let selected=null;
+const saved=JSON.parse(localStorage.getItem('dcd_statuses')||'{}');
+items.forEach(x=>{if(saved[x.id])x.status=saved[x.id]});
+function persist(){localStorage.setItem('dcd_statuses',JSON.stringify(Object.fromEntries(items.map(x=>[x.id,x.status]))));render()}
+function pill(s){return `<span class="pill ${s}">${labels[s]}</span>`}
+function render(){
+ document.getElementById('countConnected').textContent=items.filter(x=>x.status==='connected').length;
+ document.getElementById('countPending').textContent=items.filter(x=>x.status!=='connected').length;
+ document.getElementById('countAll').textContent=items.length;
+ const flow=document.getElementById('flow');flow.innerHTML='';
+ items.forEach((x,i)=>{
+  const n=document.createElement('div');n.className='node'+(selected===x.id?' selected':'');n.innerHTML=`<div class="top"><span class="ico">${x.icon}</span>${pill(x.status)}</div><h3>${x.name}</h3><p>${x.group}</p>`;n.onclick=()=>select(x.id);flow.appendChild(n);
+  if(i<items.length-1 && (i===1||i===3||i===7||i===9)){const c=document.createElement('div');c.className='connector';c.textContent='↓';flow.appendChild(c)}
+ });
+ document.getElementById('list').innerHTML=items.map(x=>`<div class="rowitem"><div><strong>${x.icon} ${x.name}</strong><small>${x.group}</small></div><button class="action" data-id="${x.id}">${labels[x.status]}</button></div>`).join('');
+ document.querySelectorAll('#list button').forEach(b=>b.onclick=()=>{select(b.dataset.id);cycle(b.dataset.id)});
+ if(selected)select(selected,false);
+}
+function select(id,scroll=true){selected=id;const x=items.find(a=>a.id===id);if(!x)return;document.getElementById('detailTitle').textContent=x.icon+' '+x.name+' — '+labels[x.status];document.getElementById('detailDesc').textContent=x.desc;document.getElementById('toggleStatus').disabled=false;document.getElementById('openGuide').disabled=false;document.querySelectorAll('.node').forEach((n,i)=>n.classList.toggle('selected',items[i]?.id===id))}
+function cycle(id){const x=items.find(a=>a.id===id);if(!x)return;x.status=x.status==='planned'?'pending':x.status==='pending'?'connected':'planned';persist();select(id)}
+document.getElementById('toggleStatus').onclick=()=>selected&&cycle(selected);
+document.getElementById('openGuide').onclick=()=>show('guide');
+function show(v){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===v));['flow','list','guide'].forEach(x=>document.getElementById(x+'View').classList.toggle('hidden',x!==v))}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>show(b.dataset.view));
+document.getElementById('reset').onclick=()=>{if(confirm('Kembalikan semua status ke kondisi awal?')){localStorage.removeItem('dcd_statuses');items.forEach(x=>{x.status=({telegram:'connected',n8n:'connected',ffmpeg:'connected'}[x.id]||'pending')});selected=null;document.getElementById('detailTitle').textContent='Pilih salah satu komponen';document.getElementById('detailDesc').textContent='Ketuk kotak pada alur untuk melihat fungsi dan sambungan berikutnya.';document.getElementById('toggleStatus').disabled=true;document.getElementById('openGuide').disabled=true;render()}};
+render();
+</script>
+</body></html>
