@@ -1,5 +1,5 @@
 
-name: Video DCD dengan Foto
+name: Video DCD Tiga Adegan
 
 on:
   workflow_dispatch:
@@ -19,26 +19,28 @@ jobs:
 
       - name: Periksa gambar
         run: |
-          echo "Daftar file repositori:"
-          ls -lah
-          echo "Memeriksa cordins.jpg:"
-          test -f ./cordins.jpg
-          file ./cordins.jpg
+          test -f adegan1.jpg
+          test -f adegan2.jpg
+          test -f cordins.jpg
 
-      - name: Buat video DCD
+      - name: Buat video tiga adegan
         run: |
           ffmpeg -y \
-          -loop 1 -framerate 30 -i ./cordins.jpg \
-          -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0005,1.08)':d=360:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=52:x=(w-text_w)/2:y=h*0.75:box=1:boxcolor=black@0.55:boxborderw=18" \
-          -t 12 \
-          -c:v libx264 -pix_fmt yuv420p \
-          -movflags +faststart \
-          dcd-antikythera.mp4
+          -loop 1 -framerate 30 -t 4 -i adegan1.jpg \
+          -loop 1 -framerate 30 -t 4 -i adegan2.jpg \
+          -loop 1 -framerate 30 -t 4 -i cordins.jpg \
+          -filter_complex "\
+          [0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0008,1.08)':d=1:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='PENEMUAN DI DASAR LAUT':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=15[v0]; \
+          [1:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0008,1.08)':d=1:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='RODA GIGI MISTERIUS':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=15[v1]; \
+          [2:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0008,1.08)':d=1:s=1080x1920:fps=30,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='MEKANISME ANTIKYTHERA':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=15[v2]; \
+          [v0][v1][v2]concat=n=3:v=1:a=0[out]" \
+          -map "[out]" -c:v libx264 -pix_fmt yuv420p \
+          -movflags +faststart dcd-tiga-adegan.mp4
 
       - name: Simpan video
         uses: actions/upload-artifact@v4
         with:
-          name: Video-DCD-Antikythera
-          path: dcd-antikythera.mp4
+          name: Video-DCD-Tiga-Adegan
+          path: dcd-tiga-adegan.mp4
           retention-days: 7
           
