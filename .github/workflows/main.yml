@@ -20,14 +20,14 @@ jobs:
       - name: Periksa gambar
         run: |
           test -f adegan1.jpg
-          test -f adegan2.jpg
+          test -f adegan2.png
           test -f cordins.jpg
 
       - name: Buat video DCD
         run: |
           ffmpeg -y \
           -loop 1 -framerate 15 -t 4 -i adegan1.jpg \
-          -loop 1 -framerate 15 -t 4 -i adegan2.jpg \
+          -loop 1 -framerate 15 -t 4 -i adegan2.png \
           -loop 1 -framerate 15 -t 4 -i cordins.jpg \
           -filter_complex "\
           [0:v]scale=540:960:force_original_aspect_ratio=increase,crop=540:960,setsar=1,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='PENEMUAN DI DASAR LAUT':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h*0.78:box=1:boxcolor=black@0.55:boxborderw=10[v0]; \
